@@ -5,13 +5,15 @@ import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
+from discord_components import DiscordComponents, Button, ButtonStyle
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
 bot = commands.Bot(command_prefix='>')
 client = discord.Client()
 help_words = ['help', 'помощь', 'помоги']
-
+good_mood = ['нормально', 'отлично', 'хорошо']
+bad_mood = ['плохо', 'ужасно']
 
 @bot.event
 async def on_message(message):
@@ -29,12 +31,10 @@ async def on_message(message):
 @bot.command()
 async def dialog(ctx):
     await ctx.send('Давайте поговорим')
-    if not ctx.author.bot:
-        if "как дела" in str(ctx).lower():
-            await ctx.channel.send("Всё здорово, спасибо")
-        else:
-            await ctx.channel.send("Не можем разобрать, введите ещё раз")
-
+    await ctx.send('Как дела?')
+    await bot.wait_for('message')
+    await ctx.send('Ого. Ну в любом случае желаю тебе удачи')
+    await ctx.send('Отлично поболтали, спасибо')
 
 @bot.command()
 async def commands(ctx):
@@ -141,12 +141,9 @@ async def delete(ctx):
 async def change(ctx):
     await ctx.send(
         "Введите дату и название события, которое хотите изменить, в формате 'Название события, год.месяц.день'")
-    # await ctx.send("Введите дату и название события в формате 'Название события, год.месяц.день' и новое событее в формате"
-    #     "'Название события; год.месяц.день.время; дополнительные сведенья' для изменения")
     con = sqlite3.connect("data/things.db")
     cur = con.cursor()
     channel = ctx.channel
-
     def check(mes):
         if not mes.author.bot:
             return mes.content and mes.channel == channel
@@ -154,34 +151,21 @@ async def change(ctx):
     mes = await bot.wait_for(event='message', check=check)
     need_task_and_date = str(mes.content).split(', ')
     task, date = need_task_and_date[0], need_task_and_date[1]
-    await ctx.send(
-        "Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
-
-    def check(mes):
-        if not mes.author.bot:
-            return mes.content and mes.channel == channel
-
-    mes = await bot.wait_for(event='message', check=check)
-    task_full = str(mes.content)
-    task = str(task_full.split('; ')[0])
-    app_name = (task_full.split('; ')[2]).lower()
-    user = str(mes.author)
-    date = str(task_full.split('; ')[1])
-    spis.append(task_full)
-
-    cur.execute(
-        f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
-    cur.execute(
-                """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-                (user, task, date, app_name))
-    await ctx.send('Событие изменено')
-    tasks = cur.execute(
-        f"""SELECT tasks FROM tasks_user WHERE date='{date}'""").fetchall()
-    await ctx.send('Теперь ваши планы на день:')
-    for task0 in tasks:
-        for task in task0:
-            task = task.split('; ')[0]
-            await ctx.send(task)
-    con.commit()
-    con.close()
+    await ctx.send(embed=discord.Embed(title='Что вы хотите изменить?'),
+                   components=[Button(style=ButtonStyle.blue, label='дату'),
+                               Button(style=ButtonStyle.blue, label='событие'),
+                               Button(style=ButtonStyle.blue, label='приложение')])
+    ans = await bot.wait_for('button_click')
+    need_to_change = ans.component.label
+    if need_to_change == 'дату':
+        await ctx.send(
+            "Введите желаемую дату в формате: год.месяц.день")
+        cur.execute(
+                    f"""UPDATE tasks_user SET date = '' WHERE date = '{date}' AND tasks = '{task}'""")
+    elif need_to_change == 'событие':
+        await ctx.send(
+            "Введите желаемое событие")
+    elif need_to_change == 'приложение':
+        await ctx.send(
+            "Введите желаемое приложение")
 bot.run(TOKEN)
