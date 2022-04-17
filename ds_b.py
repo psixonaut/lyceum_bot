@@ -135,37 +135,4 @@ async def delete(ctx):
             await ctx.send(task)
     con.commit()
     con.close()
-
-
-@bot.command()
-async def change(ctx):
-    await ctx.send(
-        "Введите дату и название события, которое хотите изменить, в формате 'Название события, год.месяц.день'")
-    con = sqlite3.connect("data/things.db")
-    cur = con.cursor()
-    channel = ctx.channel
-    def check(mes):
-        if not mes.author.bot:
-            return mes.content and mes.channel == channel
-
-    mes = await bot.wait_for(event='message', check=check)
-    need_task_and_date = str(mes.content).split(', ')
-    task, date = need_task_and_date[0], need_task_and_date[1]
-    await ctx.send(embed=discord.Embed(title='Что вы хотите изменить?'),
-                   components=[Button(style=ButtonStyle.blue, label='дату'),
-                               Button(style=ButtonStyle.blue, label='событие'),
-                               Button(style=ButtonStyle.blue, label='приложение')])
-    ans = await bot.wait_for('button_click')
-    need_to_change = ans.component.label
-    if need_to_change == 'дату':
-        await ctx.send(
-            "Введите желаемую дату в формате: год.месяц.день")
-        cur.execute(
-                    f"""UPDATE tasks_user SET date = '' WHERE date = '{date}' AND tasks = '{task}'""")
-    elif need_to_change == 'событие':
-        await ctx.send(
-            "Введите желаемое событие")
-    elif need_to_change == 'приложение':
-        await ctx.send(
-            "Введите желаемое приложение")
 bot.run(TOKEN)
