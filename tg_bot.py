@@ -45,12 +45,12 @@ def help(update, context):
 
 
 def add(update, context):
-    thing = update.message.textlstrip('/add').strip()
-    con = sqlite3.connect("data/things.db")
+    thing = str(update.message.text).lstrip('/add').strip().split(';')
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     cur.execute(
         """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-        (thing[0], thing[1], thing[2], thing[3]))
+        (update.message.from_user.first_name, thing[0], thing[1], thing[2]))
     con.commit()
     con.close()
 
@@ -58,7 +58,7 @@ def add(update, context):
 
 def today(update, context):
     update.message.reply_text(f"Рассписание на сегодня:")
-    con = sqlite3.connect("data/things.db")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     today_date = str((datetime.now().date()).strftime("%Y.%m.%d"))
     tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date='{today_date}'""").fetchall()
@@ -71,9 +71,9 @@ def today(update, context):
 
 
 def day(update, context):
-    con = sqlite3.connect("data/things.db")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    need_date = update.message.textlstrip('/day').strip()
+    need_date = str(update.message.text).lstrip('/day').strip()
     tasks = cur.execute(
         f"""SELECT tasks FROM tasks_user WHERE date='{need_date}'""").fetchall()
     for task0 in tasks:
@@ -85,9 +85,9 @@ def day(update, context):
 
 
 def delete(update, context):
-    con = sqlite3.connect("data/things.db")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    need_task_and_date = str(update.message.text.lstrip('/delete').strip()).split(', ')
+    need_task_and_date = str(update.message.text).lstrip('/delete').strip().split(', ')
     task, date = need_task_and_date[0], need_task_and_date[1]
     cur.execute(
         f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
@@ -97,7 +97,7 @@ def delete(update, context):
     update.message.reply_text('Теперь ваши планы на день:')
     for task0 in tasks:
         for task in task0:
-            task = task.split ('; ') [0]
+            task = task.split('; ')[0]
             update.message.reply_text(task)
     con.commit()
     con.close()
