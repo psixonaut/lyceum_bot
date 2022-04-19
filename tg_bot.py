@@ -6,8 +6,7 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler
 from datetime import *
 
-reply_keyboard = [['/help', '/add', '/change'],
-                  ['/today', '/day', '/delete']]
+reply_keyboard = [['/help', '/today']]
 
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
@@ -23,7 +22,7 @@ TOKEN = BOT_TOKEN_TG
 
 def start(update, context):
     update.message.reply_text(
-        "Я бот - планировщик. Вы можете записывать в меня свои планы",
+        f"Привет, {update.message.from_user.first_name}, я бот - планировщик. Вы можете записывать в меня свои планы",
         reply_markup=markup
     )
 
@@ -37,17 +36,17 @@ def close_keyboard(update, context):
 
 def help(update, context):
     update.message.reply_text(
-        "/add - Напишите событее в форме"
-        " 'Название события; год.месяц.день; приложение для отправки', чтобы добавить событее\n"
+        "Напишите событее в форме"
+        " '/add Название события; год.месяц.день; приложение для отправки', чтобы добавить событее\n"
         "/today - посмотреть рассписание на сегодня\n"
-        "/day - Введите дату в формате год.месяц.день, чтобы увидеть рассписание на день\n"
-        "/delete - Введите дату и название события"
-        " в формате 'Название события, год.месяц.день', чтобы удалить событее\n"
+        "Введите дату в формате '/day год.месяц.день', чтобы увидеть рассписание на день\n"
+        "Введите дату и название события"
+        " в формате '/delete Название события, год.месяц.день', чтобы удалить событее\n"
         "/change - изменить событее\n")
 
 
 def add(update, context):
-    thing = str(update.message.text).lstrip('/add').strip().split(';')
+    thing = str(update.message.text).lstrip('/add').strip().replace(' ', '').split(';')
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     cur.execute(
@@ -74,7 +73,7 @@ def today(update, context):
 def day(update, context):
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    need_date = str(update.message.text).lstrip('/day').strip()
+    need_date = str(update.message.text).lstrip('/day').strip().replace(' ', '')
     tasks = cur.execute(
         f"""SELECT tasks FROM tasks_user WHERE date='{need_date}'""").fetchall()
     for task0 in tasks:
@@ -88,7 +87,7 @@ def day(update, context):
 def delete(update, context):
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    need_task_and_date = str(update.message.text).lstrip('/delete').strip().split(', ')
+    need_task_and_date = str(update.message.text).lstrip('/delete').strip().replace(' ', '').split(', ')
     task, date = need_task_and_date[0], need_task_and_date[1]
     cur.execute(
         f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
