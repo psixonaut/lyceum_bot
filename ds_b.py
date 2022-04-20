@@ -5,7 +5,6 @@ import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
-from discord_components import DiscordComponents, Button, ButtonStyle
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
@@ -29,15 +28,6 @@ async def on_message(message):
                                            f" >. Ознакомиться со всеми функциями"
                                            f" можно через >commands")
 
-
-@bot.command()
-async def dialog(ctx):
-    await ctx.send('Давайте поговорим')
-    await ctx.send('Как дела?')
-    await bot.wait_for('message')
-    await ctx.send('Ого. Ну в любом случае желаю тебе удачи')
-    await ctx.send('Отлично поболтали, спасибо')
-
 @bot.command()
 async def commands(ctx):
     await ctx.send('Список команд:\n'
@@ -45,8 +35,7 @@ async def commands(ctx):
         ">today - посмотреть рассписание на сегодня\n"
         ">day - посмотреть рассписание на date день\n"
         ">delete - удалить событие\n"
-        ">change - изменить событие\n"
-        ">dialog - немного поболтать с ботом")
+        ">change - изменить событие")
 
 
 @bot.command()
@@ -142,4 +131,3 @@ async def delete(ctx):
                     await ctx.send(task)
     con.commit()
     con.close()
-bot.run(TOKEN)
