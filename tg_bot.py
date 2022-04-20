@@ -40,13 +40,12 @@ def help(update, context):
         " '/add Название события; год.месяц.день; приложение для отправки', чтобы добавить событее\n"
         "/today - посмотреть рассписание на сегодня\n"
         "Введите дату в формате '/day год.месяц.день', чтобы увидеть рассписание на день\n"
-        "Введите дату и название события"
-        " в формате '/delete Название события, год.месяц.день', чтобы удалить событее\n"
-        "/change - изменить событее\n")
+        "Введите дату и название события в формате '/delete Название события, год.месяц.день', чтобы удалить событее\n")
 
 
 def add(update, context):
-    thing = str(update.message.text).lstrip('/add').strip().replace(' ', '').split(';')
+    thing = str(update.message.text).lstrip('/add').strip().split(';')
+    thing[0] = thing[0].replace(' ', '')
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     cur.execute(
@@ -87,7 +86,8 @@ def day(update, context):
 def delete(update, context):
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    need_task_and_date = str(update.message.text).lstrip('/delete').strip().replace(' ', '').split(', ')
+    need_task_and_date = str(update.message.text).lstrip('/delete').strip().split(',')
+    need_task_and_date[0] = need_task_and_date[0].replace(' ', '')
     task, date = need_task_and_date[0], need_task_and_date[1]
     cur.execute(
         f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
@@ -125,6 +125,3 @@ def main():
 
     updater.idle()
 
-
-if __name__ == '__main__':
-    main()
