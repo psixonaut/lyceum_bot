@@ -14,6 +14,8 @@ client = discord.Client()
 help_words = ['help', 'помощь', 'помоги']
 good_mood = ['нормально', 'отлично', 'хорошо']
 bad_mood = ['плохо', 'ужасно']
+ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
+
 
 @bot.event
 async def on_message(message):
@@ -62,7 +64,7 @@ async def add(ctx):
     user = str(mes.author)
     date = str(task_full.split('; ')[1])
     spis.append(task_full)
-    con = sqlite3.connect("data/things.db")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     cur.execute(
                 """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
@@ -75,14 +77,15 @@ async def add(ctx):
 @bot.command()
 async def today(ctx):
     await ctx.send("Расписание на сегодня:")
-    con = sqlite3.connect("data/things.db")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     today_date = str((datetime.now().date()).strftime("%Y.%m.%d"))
-    tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date='{today_date}'""").fetchall()
-    for task0 in tasks:
-        for task in task0:
-            task = task.split('; ')[0]
-            await ctx.send(task)
+    for app in ds_app_names:
+        tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}'""").fetchall()
+        for task0 in tasks:
+            for task in task0:
+                task = task.split('; ')[0]
+                await ctx.send(task)
     con.commit()
     con.close()
 
@@ -90,7 +93,7 @@ async def today(ctx):
 @bot.command()
 async def day(ctx):
     await ctx.send("Введите дату в формате год.месяц.день, чтобы увидеть расписание на день")
-    con = sqlite3.connect("data/things.db")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     channel = ctx.channel
 
@@ -99,20 +102,21 @@ async def day(ctx):
             return mes.content and mes.channel == channel
     mes = await bot.wait_for(event='message', check=check)
     need_date = str(mes.content)
-    tasks = cur.execute(
-        f"""SELECT tasks FROM tasks_user WHERE date='{need_date}'""").fetchall()
-    for task0 in tasks:
-        for task in task0:
-            task = task.split('; ')[0]
-            await ctx.send(task)
+    for app in ds_app_names:
+        tasks = cur.execute(
+            f"""SELECT tasks FROM tasks_user WHERE date='{need_date}' AND app='{app}'""").fetchall()
+        for task0 in tasks:
+            for task in task0:
+                task = task.split('; ')[0]
+                await ctx.send(task)
     con.commit()
     con.close()
 
 
 @bot.command()
 async def delete(ctx):
-    await ctx.send("Введите дату и название события в формате 'Название события, год.месяц.день', чтобы удалить событее")
-    con = sqlite3.connect("data/things.db")
+    await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событее")
+    con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     channel = ctx.channel
 
@@ -121,18 +125,21 @@ async def delete(ctx):
             return mes.content and mes.channel == channel
 
     mes = await bot.wait_for(event='message', check=check)
-    need_task_and_date = str(mes.content).split(', ')
+    need_task_and_date = str(mes.content).split('; ')
     task, date = need_task_and_date[0], need_task_and_date[1]
-    cur.execute(
-        f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
+    for app in ds_app_names:
+        cur.execute(
+            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'""").fetchall()
     await ctx.send('Событие удалено')
-    tasks = cur.execute(
-        f"""SELECT tasks FROM tasks_user WHERE date='{date}'""").fetchall()
-    await ctx.send('Теперь ваши планы на день:')
-    for task0 in tasks:
-        for task in task0:
-            task = task.split('; ')[0]
-            await ctx.send(task)
+    await ctx.send('Теперь ваши планы на указанный день:')
+    for app in ds_app_names:
+        tasks = cur.execute(
+                f"""SELECT tasks FROM tasks_user WHERE date='{date}' AND app='{app}'""").fetchall()
+        for task0 in tasks:
+            for task in task0:
+                task = task.split('; ')[0]
+                if task != '':
+                    await ctx.send(task)
     con.commit()
     con.close()
 bot.run(TOKEN)
