@@ -1,19 +1,19 @@
-import os
 import discord
 import logging
 import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
+
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
 bot = commands.Bot(command_prefix='>')
 client = discord.Client()
 help_words = ['help', 'помощь', 'помоги']
-good_mood = ['нормально', 'отлично', 'хорошо']
-bad_mood = ['плохо', 'ужасно']
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
+vk_app_names = ['vk', 'вк', 'вконтакте']
+tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 
 
 @bot.event
@@ -27,6 +27,7 @@ async def on_message(message):
                 await message.channel.send(f"Команды вызываются с помощью значка"
                                            f" >. Ознакомиться со всеми функциями"
                                            f" можно через >commands")
+
 
 @bot.command()
 async def commands(ctx):
@@ -43,6 +44,7 @@ async def add(ctx):
     spis = []
     channel = ctx.channel
     await ctx.send("Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
+
     def check(mes):
         if not mes.author.bot:
             return mes.content and mes.channel == channel
@@ -53,14 +55,17 @@ async def add(ctx):
     user = str(mes.author)
     date = str(task_full.split('; ')[1])
     spis.append(task_full)
-    con = sqlite3.connect("db/things.db")
-    cur = con.cursor()
-    cur.execute(
-                """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-                (user, task, date, app_name))
-    con.commit()
-    con.close()
-    await channel.send('Событие записано и добавлено')
+    if app_name in ds_app_names or app_name in tg_app_names or app_name in vk_app_names:
+        con = sqlite3.connect("db/things.db")
+        cur = con.cursor()
+        cur.execute(
+                    """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
+                    (user, task, date, app_name))
+        con.commit()
+        con.close()
+        await channel.send('Событие записано и добавлено')
+    else:
+        await channel.send(f'Напиши нормальное название мессенджера. Выбирай из этого {ds_app_names}, {tg_app_names}, {vk_app_names}')
 
 
 @bot.command()
@@ -104,7 +109,7 @@ async def day(ctx):
 
 @bot.command()
 async def delete(ctx):
-    await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событее")
+    await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событие")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     channel = ctx.channel
@@ -131,3 +136,7 @@ async def delete(ctx):
                     await ctx.send(task)
     con.commit()
     con.close()
+
+
+def run():
+    bot.run(TOKEN)
