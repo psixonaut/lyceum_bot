@@ -5,8 +5,6 @@ import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
-from tg_bot import tg_app_names
-
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
@@ -24,8 +22,6 @@ async def on_message(message):
     if not message.author.bot:
         if "привет" in message.content.lower():
             await message.channel.send(f"Привет, {message.author.mention}")
-        if 'fail' or 'error' or 'damage' or 'ошибка' in message.content.lower():
-            await message.channel.send("I guess it's time to go out @everyone")
         for word in help_words:
             if word in message.content.lower():
                 await message.channel.send(f"Команды вызываются с помощью значка"
@@ -57,17 +53,14 @@ async def add(ctx):
     user = str(mes.author)
     date = str(task_full.split('; ')[1])
     spis.append(task_full)
-    if app_name in ds_app_names or tg_app_names:
-        con = sqlite3.connect("db/things.db")
-        cur = con.cursor()
-        cur.execute(
-                    """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-                    (user, task, date, app_name))
-        con.commit()
-        con.close()
-        await channel.send('Событие записано и добавлено')
-    else:
-        await channel.send(f'Напиши нормальное название мессенджера. Выбирай из этого {ds_app_names}, {tg_app_names}')
+    con = sqlite3.connect("db/things.db")
+    cur = con.cursor()
+    cur.execute(
+                """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
+                (user, task, date, app_name))
+    con.commit()
+    con.close()
+    await channel.send('Событие записано и добавлено')
 
 
 @bot.command()
@@ -138,7 +131,3 @@ async def delete(ctx):
                     await ctx.send(task)
     con.commit()
     con.close()
-
-
-def run():
-    bot.run(TOKEN)
