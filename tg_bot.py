@@ -5,7 +5,7 @@ import logging
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler
 from datetime import *
-from ds_b import ds_app_names
+ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 
 reply_keyboard = [['/help', '/today']]
@@ -14,7 +14,7 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,8 @@ def today(update, context):
     cur = con.cursor()
     today_date = str((datetime.now().date()).strftime("%Y.%m.%d"))
     for app in tg_app_names:
-        tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date = '{today_date}' AND app = '{app}'""").fetchall()
+        tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date = '{today_date}' AND app = '{app}' 
+                                AND username = '{update.message.from_user.first_name}'""").fetchall()
         for task0 in tasks:
             for task in task0:
                 task = task.split('; ')[0]
@@ -82,7 +83,8 @@ def day(update, context):
     need_date = str(update.message.text).lstrip('/day').strip().replace(' ', '')
     for app in tg_app_names:
         tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{need_date}' AND app='{app}'""").fetchall()
+            f"""SELECT tasks FROM tasks_user WHERE date='{need_date}' AND app='{app}'
+                        AND username = '{update.message.from_user.first_name}""").fetchall()
         for task0 in tasks:
             for task in task0:
                 task = task.split('; ')[0]
@@ -99,10 +101,12 @@ def delete(update, context):
     task, date = need_task_and_date[0], need_task_and_date[1]
     for app in tg_app_names:
         cur.execute(
-            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'""").fetchall()
+            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'
+                        AND username = '{update.message.from_user.first_name}""").fetchall()
         update.message.reply_text('Событие удалено')
         tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{date}' and app='{app}'""").fetchall()
+            f"""SELECT tasks FROM tasks_user WHERE date='{date}' and app='{app}'
+                        AND username = '{update.message.from_user.first_name}""").fetchall()
         update.message.reply_text('Теперь ваши планы на день:')
         for task0 in tasks:
             for task in task0:
@@ -110,25 +114,3 @@ def delete(update, context):
                 update.message.reply_text(task)
         con.commit()
         con.close()
-
-
-def change(update, context):
-    con = sqlite3.connect("db/things.db")
-    cur = con.cursor()
-
-
-def start_work():
-    updater = Updater(TOKEN)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("close", close_keyboard))
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("add", add))
-    dp.add_handler(CommandHandler("today", today))
-    dp.add_handler(CommandHandler("day", day))
-    dp.add_handler(CommandHandler("delete", delete))
-    dp.add_handler(CommandHandler("change", change))
-    updater.start_polling()
-
-    updater.idle()
-
