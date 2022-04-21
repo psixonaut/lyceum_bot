@@ -17,7 +17,6 @@ def main():
     dp.add_handler(CommandHandler("today", today))
     dp.add_handler(CommandHandler("day", day))
     dp.add_handler(CommandHandler("delete", delete))
-    # dp.add_handler(CommandHandler("change", change))
     updater.start_polling()
     ds_b.bot.run(TOKEN_DS)
     updater.idle()
