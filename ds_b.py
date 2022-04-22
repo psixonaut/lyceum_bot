@@ -4,7 +4,7 @@ import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
-
+import requests
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
@@ -15,13 +15,32 @@ ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
 vk_app_names = ['vk', 'вк', 'вконтакте']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 
+# async def on_message(message):
+#     if message.author == client.user:
+#         return
+#     if "привет" in message.content.lower():
+#         await message.channel.send("И тебе привет")
+#     if "кот" in message.content.lower():
+#         response = requests.get('https://api.thecatapi.com/v1/images/search%27)
+#         data = response.json()
+#         await message.channel.send(data[0]['url'])
+#     dogs = ['пёс', "собак", "собач"]
+#     if any(dog in message.content.lower() for dog in dogs):
+#         response = requests.get('https://dog.ceo/api/breeds/image/random%27)
+#         data = response.json()
+#         await message.channel.send(data['message'])
 
 @bot.event
-async def on_message(message):
+def on_message(message):
     await bot.process_commands(message)
     if not message.author.bot:
         if "привет" in message.content.lower():
             await message.channel.send(f"Привет, {message.author.mention}")
+        if 'спасибо' in message.content.lower():
+            response = requests.get(
+                'https://www.meme-arsenal.com/memes/560f577f64aa66c757be1b8d726ccbf0.jpg')
+            data = response.json()
+            await message.channel.send(data[0]['url'])
         for word in help_words:
             if word in message.content.lower():
                 await message.channel.send(f"Команды вызываются с помощью значка"
@@ -30,7 +49,7 @@ async def on_message(message):
 
 
 @bot.command()
-async def commands(ctx):
+def commands(ctx):
     await ctx.send('Список команд:\n'
         ">add - добавить событие\n"
         ">today - посмотреть рассписание на сегодня\n"
@@ -40,7 +59,7 @@ async def commands(ctx):
 
 
 @bot.command()
-async def add(ctx):
+def add(ctx):
     spis = []
     channel = ctx.channel
     await ctx.send("Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
@@ -69,7 +88,7 @@ async def add(ctx):
 
 
 @bot.command()
-async def today(ctx):
+def today(ctx):
     await ctx.send("Расписание на сегодня:")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
@@ -85,7 +104,7 @@ async def today(ctx):
 
 
 @bot.command()
-async def day(ctx):
+def day(ctx):
     await ctx.send("Введите дату в формате год.месяц.день, чтобы увидеть расписание на день")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
@@ -108,7 +127,7 @@ async def day(ctx):
 
 
 @bot.command()
-async def delete(ctx):
+def delete(ctx):
     await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событие")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
