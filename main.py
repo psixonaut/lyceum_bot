@@ -1,13 +1,16 @@
+import vk_bot
 from tg_bot import *
+from vk_bot import *
 import ds_b
 import config
+from threading import Thread
 
 
 TOKEN_TG = config.BOT_TOKEN_TG
 TOKEN_DS = config.BOT_TOKEN_DS
 
 
-def main():
+def tg():
     updater = Updater(TOKEN_TG)
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("help", help))
@@ -18,11 +21,17 @@ def main():
     dp.add_handler(CommandHandler("day", day))
     dp.add_handler(CommandHandler("delete", delete))
     updater.start_polling()
-    ds_b.bot.run(TOKEN_DS)
     updater.idle()
 
 
+def vk():
+    vk_bot.main()
 
 
-if __name__ == '__main__':
-    main()
+th1 = Thread(target=tg)
+th2 = Thread(target=vk)
+
+
+th1.start()
+th2.start()
+ds_b.bot.run(TOKEN_DS)
