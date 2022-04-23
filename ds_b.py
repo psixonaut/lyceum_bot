@@ -1,55 +1,36 @@
+import os
 import discord
+from config import BOT_TOKEN_DS
 import logging
 import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
-import requests
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
 bot = commands.Bot(command_prefix='>')
 client = discord.Client()
 help_words = ['help', 'помощь', 'помоги']
+good_mood = ['нормально', 'отлично', 'хорошо']
+bad_mood = ['плохо', 'ужасно']
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
-vk_app_names = ['vk', 'вк', 'вконтакте']
-tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 
-# async def on_message(message):
-#     if message.author == client.user:
-#         return
-#     if "привет" in message.content.lower():
-#         await message.channel.send("И тебе привет")
-#     if "кот" in message.content.lower():
-#         response = requests.get('https://api.thecatapi.com/v1/images/search%27)
-#         data = response.json()
-#         await message.channel.send(data[0]['url'])
-#     dogs = ['пёс', "собак", "собач"]
-#     if any(dog in message.content.lower() for dog in dogs):
-#         response = requests.get('https://dog.ceo/api/breeds/image/random%27)
-#         data = response.json()
-#         await message.channel.send(data['message'])
 
 @bot.event
-def on_message(message):
+async def on_message(message):
     await bot.process_commands(message)
     if not message.author.bot:
         if "привет" in message.content.lower():
             await message.channel.send(f"Привет, {message.author.mention}")
-        if 'спасибо' in message.content.lower():
-            response = requests.get(
-                'https://www.meme-arsenal.com/memes/560f577f64aa66c757be1b8d726ccbf0.jpg')
-            data = response.json()
-            await message.channel.send(data[0]['url'])
         for word in help_words:
             if word in message.content.lower():
                 await message.channel.send(f"Команды вызываются с помощью значка"
                                            f" >. Ознакомиться со всеми функциями"
                                            f" можно через >commands")
 
-
 @bot.command()
-def commands(ctx):
+async def commands(ctx):
     await ctx.send('Список команд:\n'
         ">add - добавить событие\n"
         ">today - посмотреть рассписание на сегодня\n"
@@ -59,11 +40,10 @@ def commands(ctx):
 
 
 @bot.command()
-def add(ctx):
+async def add(ctx):
     spis = []
     channel = ctx.channel
     await ctx.send("Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
-
     def check(mes):
         if not mes.author.bot:
             return mes.content and mes.channel == channel
@@ -74,21 +54,18 @@ def add(ctx):
     user = str(mes.author)
     date = str(task_full.split('; ')[1])
     spis.append(task_full)
-    if app_name in ds_app_names or app_name in tg_app_names or app_name in vk_app_names:
-        con = sqlite3.connect("db/things.db")
-        cur = con.cursor()
-        cur.execute(
-                    """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-                    (user, task, date, app_name))
-        con.commit()
-        con.close()
-        await channel.send('Событие записано и добавлено')
-    else:
-        await channel.send(f'Напиши нормальное название мессенджера. Выбирай из этого {ds_app_names}, {tg_app_names}, {vk_app_names}')
+    con = sqlite3.connect("db/things.db")
+    cur = con.cursor()
+    cur.execute(
+                """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
+                (user, task, date, app_name))
+    con.commit()
+    con.close()
+    await channel.send('Событие записано и добавлено')
 
 
 @bot.command()
-def today(ctx):
+async def today(ctx):
     await ctx.send("Расписание на сегодня:")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
@@ -104,7 +81,7 @@ def today(ctx):
 
 
 @bot.command()
-def day(ctx):
+async def day(ctx):
     await ctx.send("Введите дату в формате год.месяц.день, чтобы увидеть расписание на день")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
@@ -127,8 +104,8 @@ def day(ctx):
 
 
 @bot.command()
-def delete(ctx):
-    await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событие")
+async def delete(ctx):
+    await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событее")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     channel = ctx.channel
@@ -155,7 +132,3 @@ def delete(ctx):
                     await ctx.send(task)
     con.commit()
     con.close()
-
-
-def run():
-    bot.run(TOKEN)
