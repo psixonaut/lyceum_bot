@@ -1,11 +1,16 @@
 import os
 import discord
-from config import BOT_TOKEN_DS
 import logging
 import sqlite3
 from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
+import requests
+
+
+
+
+
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
@@ -21,6 +26,15 @@ ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
 async def on_message(message):
     await bot.process_commands(message)
     if not message.author.bot:
+        if "кот" in message.content.lower():
+            response = requests.get('https://api.thecatapi.com/v1/images/search')
+            data = response.json()
+            await message.channel.send(data[0]['url'])
+        dogs = ['пёс', "собак", "собач"]
+        if any(dog in message.content.lower() for dog in dogs):
+            response = requests.get('https://dog.ceo/api/breeds/image/random')
+            data = response.json()
+            await message.channel.send(data['message'])
         if "привет" in message.content.lower():
             await message.channel.send(f"Привет, {message.author.mention}")
         for word in help_words:
