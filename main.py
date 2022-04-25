@@ -1,3 +1,4 @@
+import tg_bot
 import vk_bot
 from tg_bot import *
 from vk_bot import *
@@ -11,17 +12,7 @@ TOKEN_DS = config.BOT_TOKEN_DS
 
 
 def tg():
-    updater = Updater(TOKEN_TG)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("close", close_keyboard))
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("add", add))
-    dp.add_handler(CommandHandler("today", today))
-    dp.add_handler(CommandHandler("day", day))
-    dp.add_handler(CommandHandler("delete", delete))
-    updater.start_polling()
-    updater.idle()
+    tg_bot.main()
 
 
 def vk():
