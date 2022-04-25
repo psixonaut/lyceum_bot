@@ -41,8 +41,7 @@ def commands(user_id):
                    "/add - добавить событие\n"
                    "/today - посмотреть рассписание на сегодня\n"
                    "/day - посмотреть рассписание на date день\n"
-                   "/delete - удалить событие\n"
-                   "/change - изменить событие")
+                   "/delete - удалить событие")
 
 
 def add(user_id):
@@ -82,10 +81,8 @@ def today(user_id):
     for app in vk_app_names:
         tasks = cur.execute(
             f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}'""").fetchall()
-        for task0 in tasks:
-            for task in task0:
-                task = task.split('; ')[0]
-                send_msg(user_id, task)
+        for task in tasks:
+            send_msg(user_id, task)
     con.commit()
     con.close()
 
@@ -100,10 +97,8 @@ def day(user_id):
                 mes = str(event.text.lower())
                 tasks = cur.execute(
             f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}'""").fetchall()
-                for task0 in tasks:
-                    for task in task0:
-                        task = task.split('; ')[0]
-                        send_msg(user_id, task)
+                for task in tasks:
+                    send_msg(user_id, task)
     con.commit()
     con.close()
 
