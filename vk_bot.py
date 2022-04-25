@@ -8,7 +8,7 @@ tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
 help_words = ['help', 'помощь', 'помоги', 'привет', 'hi', 'hello']
 vk_session = vk_api.VkApi(token=BOT_TOKEN_VK)
-
+vk = vk_session.get_api()
 
 def send_msg(user_id, some_text):
     vk_session.method("messages.send",
@@ -47,7 +47,7 @@ def commands(user_id):
 def add(user_id):
     send_msg(user_id, "Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
     spis = []
-    vk = vk_session.get_api()
+
     response = vk.users.get(user_id=user_id)
     for element in response:
         user = str(element['last_name']) + ' ' + str(element['first_name'])
@@ -79,8 +79,11 @@ def today(user_id):
     today_date = str(
         (datetime.now().date()).strftime("%Y.%m.%d"))
     for app in vk_app_names:
+        response = vk.users.get(user_id=user_id)
+        for element in response:
+            user = str(element['last_name']) + ' ' + str(element['first_name'])
         tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}'""").fetchall()
+            f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}' AND username = '{user}'""").fetchall()
         for task in tasks:
             send_msg(user_id, task)
     con.commit()
@@ -95,8 +98,12 @@ def day(user_id):
         for event in VkLongPoll(vk_session).listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 mes = str(event.text.lower())
+                response = vk.users.get(user_id=user_id)
+                for element in response:
+                    user = str(element['last_name']) + ' ' + str(
+                        element['first_name'])
                 tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}'""").fetchall()
+            f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}' AND username = '{user}'""").fetchall()
                 for task in tasks:
                     send_msg(user_id, task)
     con.commit()

@@ -38,11 +38,11 @@ def close_keyboard(update, context):
 
 def help(update, context):
     update.message.reply_text(
-        "Напишите событее в форме"
-        " '/add Название событие; год.месяц.день; приложение для отправки', чтобы добавить событее\n"
-        "/today - посмотреть рассписание на сегодня\n"
-        "Введите дату в формате '/day год.месяц.день', чтобы увидеть рассписание на день\n"
-        "Введите дату и название событие в формате '/delete Название событие, год.месяц.день', чтобы удалить событее\n")
+        "Напишите событие в форме"
+        " '/add Название событие; год.месяц.день; приложение для отправки', чтобы добавить событие\n"
+        "/today - посмотреть расписание на сегодня\n"
+        "Введите дату в формате '/day год.месяц.день', чтобы увидеть расписание на день\n"
+        "Введите дату и название событие в формате '/delete Название событие, год.месяц.день', чтобы удалить событие\n")
 
 
 def add(update, context):
@@ -58,13 +58,13 @@ def add(update, context):
             (update.message.from_user.first_name, thing[0], thing[1], thing[2]))
         con.commit()
         con.close()
-        update.message.reply_text(f"Событее успешно добавлено")
+        update.message.reply_text(f"Событие успешно добавлено")
     else:
         update.message.reply_text(f'Название мессенджера должно быть одним из этих {tg_app_names, ds_app_names}.')
 
 
 def today(update, context):
-    update.message.reply_text(f"Рассписание на сегодня:")
+    update.message.reply_text(f"Расписание на сегодня:")
     today_date = str((datetime.now().date()).strftime("%Y.%m.%d"))
     for app in tg_app_names:
         con = sqlite3.connect("db/things.db")
@@ -104,11 +104,11 @@ def delete(update, context):
     for app in tg_app_names:
         cur.execute(
             f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'
-                        AND username = '{update.message.from_user.first_name}""").fetchall()
+                        AND username = '{update.message.from_user.first_name}'""").fetchall()
         update.message.reply_text('Событие удалено')
         tasks = cur.execute(
             f"""SELECT tasks FROM tasks_user WHERE date='{date}' and app='{app}'
-                        AND username = '{update.message.from_user.first_name}""").fetchall()
+                        AND username = '{update.message.from_user.first_name}'""").fetchall()
         update.message.reply_text('Теперь ваши планы на день:')
         for task0 in tasks:
             for task in task0:
