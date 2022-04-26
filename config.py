@@ -1,4 +1,6 @@
-BOT_TOKEN_TG = '5389484482:AAElsVC7-gy4-Xi8jRevVXwgTT-VF0lMIYk'
-BOT_TOKEN_DS = 'OTYzOTIxNzQ4NTkwNDYwOTU4.YldIFQ.QP9iEuoRW9aCsR03LTJjIWnuirA'
-BOT_TOKEN_VK = '6983e672abcad7301d719931efbf0e2144efe94c0474b5ca56e95656677234b57faad945d10a61146cdc3'
-group_id = '212033635'
+vde_ycvjm_nv = '5389484482:lfswxuw7-vj4-cw8uwdpkibuey-uz0axnmv'
+gnn_izpsy_ir = 'iijecenwhob4shvbmxnhthf4.dkxxqv.ea9ndodcb9onxq03fiuowhstcgl'
+gce_ynety_ay = '6983p672fawpo7301i719931sqge0y2144tqj94q0474m5hz56y95656677234q57qfoo945i10z61146wsn3'
+lfzzo_cs = '212033635'
+
+#зашифровано шифром вижнера с квадратом R0T1, алфавит - английский, ключь находится в комментариях к остальному коду
