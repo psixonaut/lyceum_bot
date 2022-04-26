@@ -8,11 +8,13 @@ from datetime import *
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 
+#клавиатура с ответами
 reply_keyboard = [['/help', '/today']]
 
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 
+#логирование
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 )
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 TOKEN = BOT_TOKEN_TG
 
 
+#старт программы
 def start(update, context):
     update.message.reply_text(
         f"Привет, {update.message.from_user.first_name}, я бот - планировщик. Вы можете записывать в меня свои планы",
@@ -29,6 +32,7 @@ def start(update, context):
     )
 
 
+#закрыть клавиатуру
 def close_keyboard(update, context):
     update.message.reply_text(
         "Ok",
@@ -36,6 +40,7 @@ def close_keyboard(update, context):
     )
 
 
+#помощь
 def help(update, context):
     update.message.reply_text(
         "Напишите событие в форме"
@@ -45,10 +50,11 @@ def help(update, context):
         "Введите дату и название событие в формате '/delete Название событие; год.месяц.день', чтобы удалить событие\n")
 
 
+#добавление события
 def add(update, context):
     thing = str(update.message.text).lstrip('/add').strip().split(';')
     thing[0] = thing[0].strip()
-    thing[2] = thing[2].strip()
+    thing[2] = 'tg'
     thing[1] = thing[1].replace(' ', '')
     if thing[2] in tg_app_names or ds_app_names:
         con = sqlite3.connect("db/things.db")
@@ -63,6 +69,7 @@ def add(update, context):
         update.message.reply_text(f'Название мессенджера должно быть одним из этих {tg_app_names, ds_app_names}.')
 
 
+#вывод событий на сегодня
 def today(update, context):
     update.message.reply_text(f"Расписание на сегодня:")
     today_date = str((datetime.now().date()).strftime("%Y.%m.%d"))
@@ -79,6 +86,7 @@ def today(update, context):
         con.close()
 
 
+#выводит события на определённый день
 def day(update, context):
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
@@ -95,6 +103,7 @@ def day(update, context):
     con.close()
 
 
+#удаляет событие
 def delete(update, context):
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
@@ -118,6 +127,7 @@ def delete(update, context):
         con.close()
 
 
+#запуск бота
 def main():
     updater = Updater(TOKEN)
     dp = updater.dispatcher
@@ -132,5 +142,6 @@ def main():
     updater.idle()
 
 
+#кодовое слово для конфига - token_key, ссылка на перевод - https://planetcalc.ru/2468/?text=BOT_TOKEN_TG%20%3D%20'5389484482%3AAAElsVC7-gy4-Xi8jRevVXwgTT-VF0lMIYk'%0ABOT_TOKEN_DS%20%3D%20'OTYzOTIxNzQ4NTkwNDYwOTU4.YldIFQ.QP9iEuoRW9aCsR03LTJjIWnuirA'%0ABOT_TOKEN_VK%20%3D%20'6983e672abcad7301d719931efbf0e2144efe94c0474b5ca56e95656677234b57faad945d10a61146cdc3'%0Agroup_id%20%3D%20'212033635'&key=token_key&transform=c&method=ROT1&aselector=english
 if __name__ == '__main__':
     main()
