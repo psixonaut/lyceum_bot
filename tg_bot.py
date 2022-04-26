@@ -42,7 +42,7 @@ def help(update, context):
         " '/add Название событие; год.месяц.день; приложение для отправки', чтобы добавить событие\n"
         "/today - посмотреть расписание на сегодня\n"
         "Введите дату в формате '/day год.месяц.день', чтобы увидеть расписание на день\n"
-        "Введите дату и название событие в формате '/delete Название событие, год.месяц.день', чтобы удалить событие\n")
+        "Введите дату и название событие в формате '/delete Название событие; год.месяц.день', чтобы удалить событие\n")
 
 
 def add(update, context):
@@ -98,7 +98,7 @@ def day(update, context):
 def delete(update, context):
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    need_task_and_date = str(update.message.text).lstrip('/delete').strip().split(',')
+    need_task_and_date = str(update.message.text).lstrip('/delete').strip().split(';')
     need_task_and_date[0] = need_task_and_date[0].replace(' ', '')
     task, date = need_task_and_date[0], need_task_and_date[1]
     for app in tg_app_names:
