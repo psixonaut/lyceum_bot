@@ -1,4 +1,3 @@
-# import os
 import discord
 import logging
 import sqlite3
@@ -6,17 +5,20 @@ from datetime import *
 from config import BOT_TOKEN_DS
 from discord.ext import commands
 import requests
-
-
+# подключение
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 TOKEN = BOT_TOKEN_DS
+# утверждение символа, начинающего команду
 bot = commands.Bot(command_prefix='>')
 client = discord.Client()
+#списки для будущей проверки названий приложений
 help_words = ['help', 'помощь', 'помоги']
+vk_app_names = ['vk', 'вк', 'вконтакте']
+tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
 
-
+#обработка всех событий
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -25,11 +27,6 @@ async def on_message(message):
             response = requests.get('https://api.thecatapi.com/v1/images/search')
             data = response.json()
             await message.channel.send(data[0]['url'])
-        dogs = ['пёс', "собак", "собач"]
-        if any(dog in message.content.lower() for dog in dogs):
-            response = requests.get('https://dog.ceo/api/breeds/image/random')
-            data = response.json()
-            await message.channel.send(data['message'])
         if "привет" in message.content.lower():
             await message.channel.send(f"Привет, {message.author.mention}")
         for word in help_words:
@@ -38,7 +35,7 @@ async def on_message(message):
                                            f" >. Ознакомиться со всеми функциями"
                                            f" можно через >commands")
 
-
+# перечень команд
 @bot.command()
 async def commands(ctx):
     await ctx.send('Список команд:\n'
@@ -47,33 +44,38 @@ async def commands(ctx):
         ">day - посмотреть расписание на date день\n"
         ">delete - удалить событие")
 
-
+# команда добавления
 @bot.command()
 async def add(ctx):
     spis = []
     channel = ctx.channel
-    await ctx.send("Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
-
+    await ctx.send("Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки (запись нескольких в формате: 'ds, vk')")
+    # проверка того, что отправленное сообщение от пользователя
     def check(mes):
         if not mes.author.bot:
             return mes.content and mes.channel == channel
     mes = await bot.wait_for(event='message', check=check)
     task_full = str(mes.content)
     task = str(task_full.split('; ')[0])
-    app_name = (task_full.split('; ')[2]).lower()
+    app_names = ((task_full.split('; ')[2]).lower()).split(', ')
     user = str(mes.author)
     date = str(task_full.split('; ')[1])
     spis.append(task_full)
-    con = sqlite3.connect("db/things.db")
-    cur = con.cursor()
-    cur.execute(
+    for app_name in app_names:
+        if app_name in ds_app_names or app_name in tg_app_names or app_name in vk_app_names:
+            con = sqlite3.connect("db/things.db")
+            cur = con.cursor()
+            cur.execute(
                 """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
                 (user, task, date, app_name))
-    con.commit()
-    con.close()
-    await channel.send('Событие записано и добавлено')
+            con.commit()
+            con.close()
+        else:
+            await ctx.send(
+                     f'Напиши нормальное название мессенджера. Выбирай из этого {ds_app_names}, {tg_app_names}, {vk_app_names}')
+    await ctx.send('Событие записано и добавлено')
 
-
+# функция вывода событий на сегодняшний день
 @bot.command()
 async def today(ctx):
     await ctx.send("Расписание на сегодня:")
@@ -91,7 +93,7 @@ async def today(ctx):
     con.commit()
     con.close()
 
-
+# функция вывода событий на сегодняшний день
 @bot.command()
 async def day(ctx):
     await ctx.send("Введите дату в формате год.месяц.день, чтобы увидеть расписание на день")
@@ -115,7 +117,7 @@ async def day(ctx):
     con.commit()
     con.close()
 
-
+# команда удаления
 @bot.command()
 async def delete(ctx):
     await ctx.send("Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событее")

@@ -3,6 +3,7 @@ from vk_api.longpoll import VkEventType, VkLongPoll
 from datetime import *
 from config import BOT_TOKEN_VK
 import sqlite3
+#списки для будущей проверки названий приложений
 vk_app_names = ['vk', 'вк', 'вконтакте']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
@@ -10,12 +11,13 @@ help_words = ['help', 'помощь', 'помоги', 'привет', 'hi', 'hel
 vk_session = vk_api.VkApi(token=BOT_TOKEN_VK)
 vk = vk_session.get_api()
 
+# функция для отправления всех сообщений пользователю
 def send_msg(user_id, some_text):
     vk_session.method("messages.send",
                       {"user_id": user_id, "message": some_text,
                        "random_id": 0})
 
-
+# основная функция, отвечающая за все команды
 def main():
     for event in VkLongPoll(vk_session).listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
@@ -35,7 +37,7 @@ def main():
             elif '/day' in msg:
                 day(user_id)
 
-
+# перечень функций
 def commands(user_id):
     send_msg(user_id, 'Список команд:\n'
                    "/add - добавить событие\n"
@@ -43,11 +45,10 @@ def commands(user_id):
                    "/day - посмотреть рассписание на date день\n"
                    "/delete - удалить событие")
 
-
+# функция добавления
 def add(user_id):
-    send_msg(user_id, "Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки")
+    send_msg(user_id, "Напишите событие в формате 'Событие; год.месяц.день; приложение для отправки (запись нескольких в формате: 'ds, vk')")
     spis = []
-
     response = vk.users.get(user_id=user_id)
     for element in response:
         user = str(element['last_name']) + ' ' + str(element['first_name'])
@@ -55,23 +56,25 @@ def add(user_id):
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             task_full = str(event.text.lower())
             task = str(task_full.split('; ')[0])
-            app_name = (task_full.split('; ')[2]).lower()
+            app_names = ((task_full.split('; ')[2]).lower()).split(', ')
             date = str(task_full.split('; ')[1])
             spis.append(task_full)
-            if app_name in ds_app_names or app_name in tg_app_names or app_name in vk_app_names:
-                con = sqlite3.connect("db/things.db")
-                cur = con.cursor()
-                cur.execute(
-                    """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-                    (user, task, date, app_name))
-                con.commit()
-                con.close()
-                send_msg(user_id, 'Событие записано и добавлено')
-            else:
-                send_msg(user_id,
-                    f'Напиши нормальное название мессенджера. Выбирай из этого {ds_app_names}, {tg_app_names}, {vk_app_names}')
+            for app_name in app_names:
+                if app_name in ds_app_names or app_name in tg_app_names or app_name in vk_app_names:
+                    con = sqlite3.connect("db/things.db")
+                    cur = con.cursor()
+                    cur.execute(
+                        """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
+                        (user, task, date, app_name))
+                    con.commit()
+                    con.close()
+                else:
+                    send_msg(user_id,
+                        f'Напиши нормальное название мессенджера. Выбирай из этого {ds_app_names}, {tg_app_names}, {vk_app_names}')
+            send_msg(user_id, 'Событие записано и добавлено')
+            break
 
-
+# функция вывода событий на сегодняшний день
 def today(user_id):
     send_msg(user_id, "Расписание на сегодня:")
     con = sqlite3.connect("db/things.db")
@@ -89,27 +92,27 @@ def today(user_id):
     con.commit()
     con.close()
 
-
+# функция вывода событий на сегодняшний день
 def day(user_id):
-    send_msg(user_id, "Введите дату в формате год.месяц.день, чтобы увидеть расписание на день")
-    con = sqlite3.connect("db/things.db")
-    cur = con.cursor()
-    for app in vk_app_names:
-        for event in VkLongPoll(vk_session).listen():
-            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                mes = str(event.text.lower())
-                response = vk.users.get(user_id=user_id)
-                for element in response:
-                    user = str(element['last_name']) + ' ' + str(
-                        element['first_name'])
-                tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}' AND username = '{user}'""").fetchall()
-                for task in tasks:
-                    send_msg(user_id, task)
-    con.commit()
-    con.close()
+        send_msg(user_id, "Введите дату в формате год.месяц.день, чтобы увидеть расписание на день")
+        con = sqlite3.connect("db/things.db")
+        cur = con.cursor()
+        for app in vk_app_names:
+            for event in VkLongPoll(vk_session).listen():
+                if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                    mes = str(event.text.lower())
+                    response = vk.users.get(user_id=user_id)
+                    for element in response:
+                        user = str(element['last_name']) + ' ' + str(
+                            element['first_name'])
+                    tasks = cur.execute(
+                f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}' AND username = '{user}'""").fetchall()
+                    for task in tasks:
+                        send_msg(user_id, task)
+        con.commit()
+        con.close()
 
-
+# функция удаления
 def delete(user_id):
     date = ''
     send_msg(user_id,
