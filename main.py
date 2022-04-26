@@ -27,4 +27,4 @@ th2 = Thread(target=vk)
 #запускаем функции
 th1.start()
 th2.start()
-ds_b.bot.run(TOKEN_DS)
+ds_bot.bot.run(TOKEN_DS)
