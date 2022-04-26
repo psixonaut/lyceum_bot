@@ -2,7 +2,7 @@ import tg_bot
 import vk_bot
 from tg_bot import *
 from vk_bot import *
-import ds_b
+import ds_bot
 import config
 from threading import Thread
 
