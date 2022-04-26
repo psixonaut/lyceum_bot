@@ -6,6 +6,7 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler
 from datetime import *
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
+vk_app_names = ['vk', 'вк', 'вконтакте']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 
 #клавиатура с ответами
@@ -54,20 +55,21 @@ def help(update, context):
 def add(update, context):
     thing = str(update.message.text).lstrip('/add').strip().split(';')
     thing[0] = thing[0].strip()
-    thing[2] = 'tg'
+    thing2 = (thing[2].strip()).split(', ')
     thing[1] = thing[1].replace(' ', '')
-    if thing[2] in tg_app_names or ds_app_names:
-        con = sqlite3.connect("db/things.db")
-        cur = con.cursor()
-        cur.execute(
-            """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-            (update.message.from_user.first_name, thing[0], thing[1], thing[2]))
-        con.commit()
-        con.close()
-        update.message.reply_text(f"Событие успешно добавлено")
-    else:
-        update.message.reply_text(f'Название мессенджера должно быть одним из этих {tg_app_names, ds_app_names}.')
-
+    for app_name in thing2:
+        if app_name in tg_app_names or app_name in ds_app_names or app_name in vk_app_names:
+            con = sqlite3.connect("db/things.db")
+            cur = con.cursor()
+            cur.execute(
+                """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
+                (update.message.from_user.first_name, thing[0], thing[1], app_name))
+            con.commit()
+            con.close()
+            update.message.reply_text(f"Событие на приложение {app_name} успешно добавлено")
+        else:
+            update.message.reply_text(f'Название мессенджера должно быть одним из этих {tg_app_names, ds_app_names, vk_app_names}.')
+            continue
 
 #вывод событий на сегодня
 def today(update, context):
