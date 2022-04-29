@@ -16,11 +16,11 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 
 #логирование
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-)
-
-logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
+# )
+#
+# logger = logging.getLogger(__name__)
 
 TOKEN = BOT_TOKEN_TG
 
@@ -107,26 +107,30 @@ def day(update, context):
 
 #удаляет событие
 def delete(update, context):
+    taskspis = []
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
     need_task_and_date = str(update.message.text).lstrip('/delete').strip().split(';')
-    need_task_and_date[0] = need_task_and_date[0].replace(' ', '')
+    need_task_and_date[1] = str(need_task_and_date[1]).replace(' ', '')
     task, date = need_task_and_date[0], need_task_and_date[1]
     for app in tg_app_names:
         cur.execute(
-            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'
-                        AND username = '{update.message.from_user.first_name}'""").fetchall()
-        update.message.reply_text('Событие удалено')
+             f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}' 
+             AND username = '{update.message.from_user.first_name}'""").fetchall()
         tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{date}' and app='{app}'
-                        AND username = '{update.message.from_user.first_name}'""").fetchall()
-        update.message.reply_text('Теперь ваши планы на день:')
+            f"""SELECT * FROM tasks_user WHERE date='{date}' AND app='{app}' 
+            AND username = '{update.message.from_user.first_name}'""").fetchall()
         for task0 in tasks:
-            for task in task0:
-                task = task.split('; ')[0]
-                update.message.reply_text(task)
-        con.commit()
-        con.close()
+            task = task0[2]
+            if task:
+                taskspis.append(task)
+    update.message.reply_text('Событие удалено')
+    update.message.reply_text(f'Ваши планы на сегодня:')
+    print(taskspis)
+    for task in taskspis:
+        update.message.reply_text(task)
+    con.commit()
+    con.close()
 
 
 #запуск бота
@@ -145,5 +149,6 @@ def main():
 
 
 #кодовое слово для конфига - token_key, ссылка на перевод - https://planetcalc.ru/2468/?text=BOT_TOKEN_TG%20%3D%20'5389484482%3AAAElsVC7-gy4-Xi8jRevVXwgTT-VF0lMIYk'%0ABOT_TOKEN_DS%20%3D%20'OTYzOTIxNzQ4NTkwNDYwOTU4.YldIFQ.QP9iEuoRW9aCsR03LTJjIWnuirA'%0ABOT_TOKEN_VK%20%3D%20'6983e672abcad7301d719931efbf0e2144efe94c0474b5ca56e95656677234b57faad945d10a61146cdc3'%0Agroup_id%20%3D%20'212033635'&key=token_key&transform=c&method=ROT1&aselector=english
+
 if __name__ == '__main__':
     main()
