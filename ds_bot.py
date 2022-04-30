@@ -85,7 +85,7 @@ async def today(ctx):
     user = str(mes.author)
     today_date = str((datetime.now().date()).strftime("%Y.%m.%d"))
     for app in ds_app_names:
-        tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}' AND username = '{user}'""").fetchall()
+        tasks = cur.execute(f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}'""").fetchall()
         for task0 in tasks:
             for task in task0:
                 task = task.split('; ')[0]
@@ -109,7 +109,7 @@ async def day(ctx):
     need_date = str(mes.content)
     for app in ds_app_names:
         tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{need_date}' AND app='{app}' AND username = '{user}'""").fetchall()
+            f"""SELECT tasks FROM tasks_user WHERE date='{need_date}' AND app='{app}'""").fetchall()
         for task0 in tasks:
             for task in task0:
                 task = task.split('; ')[0]
@@ -134,7 +134,7 @@ async def delete(ctx):
     task, date = need_task_and_date[0], need_task_and_date[1]
     for app in ds_app_names:
         cur.execute(
-            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'""").fetchall()
+            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
     await ctx.send('Событие удалено')
     await ctx.send('Теперь ваши планы на указанный день:')
     for app in ds_app_names:
@@ -147,3 +147,4 @@ async def delete(ctx):
                     await ctx.send(task)
     con.commit()
     con.close()
+bot.run(TOKEN)

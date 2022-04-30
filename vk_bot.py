@@ -7,7 +7,7 @@ import sqlite3
 vk_app_names = ['vk', 'вк', 'вконтакте']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
 ds_app_names = ['ds', 'discord', 'дс', 'дискорд']
-help_words = ['help', 'помощь', 'помоги', 'привет', 'hi', 'hello']
+help_words = ['help', 'помощь', 'помоги', 'привет', 'начать', 'hi', 'hello']
 vk_session = vk_api.VkApi(token=BOT_TOKEN_VK)
 vk = vk_session.get_api()
 
@@ -86,7 +86,7 @@ def today(user_id):
         for element in response:
             user = str(element['last_name']) + ' ' + str(element['first_name'])
         tasks = cur.execute(
-            f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}' AND username = '{user}'""").fetchall()
+            f"""SELECT tasks FROM tasks_user WHERE date='{today_date}' AND app='{app}'""").fetchall()
         for task in tasks:
             send_msg(user_id, task)
     con.commit()
@@ -106,7 +106,7 @@ def day(user_id):
                         user = str(element['last_name']) + ' ' + str(
                             element['first_name'])
                     tasks = cur.execute(
-                f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}' AND username = '{user}'""").fetchall()
+                f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}'""").fetchall()
                     for task in tasks:
                         send_msg(user_id, task)
         con.commit()
@@ -125,7 +125,7 @@ def delete(user_id):
                 need_task_and_date = str(event.text.lower()).split('; ')
                 task, date = need_task_and_date[0], need_task_and_date[1]
                 cur.execute(
-                        f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'""").fetchall()
+                        f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
                 send_msg(user_id, 'Событие удалено')
                 send_msg(user_id, 'Теперь ваши планы на указанный день:')
                 for app in vk_app_names:
@@ -138,7 +138,7 @@ def delete(user_id):
                                 send_msg(user_id, task)
                 con.commit()
                 con.close()
-
+                date = ''
 
 if __name__ == '__main__':
     main()
