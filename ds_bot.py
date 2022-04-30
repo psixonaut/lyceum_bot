@@ -134,7 +134,7 @@ async def delete(ctx):
     task, date = need_task_and_date[0], need_task_and_date[1]
     for app in ds_app_names:
         cur.execute(
-            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}'""").fetchall()
+            f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'""").fetchall()
     await ctx.send('Событие удалено')
     await ctx.send('Теперь ваши планы на указанный день:')
     for app in ds_app_names:
@@ -147,4 +147,4 @@ async def delete(ctx):
                     await ctx.send(task)
     con.commit()
     con.close()
-bot.run(TOKEN)
+

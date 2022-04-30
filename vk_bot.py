@@ -3,12 +3,6 @@ from vk_api.longpoll import VkEventType, VkLongPoll
 from datetime import *
 from config import BOT_TOKEN_VK
 import sqlite3
-import logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-)
-
-logger = logging.getLogger(__name__)
 #списки для будущей проверки названий приложений
 vk_app_names = ['vk', 'вк', 'вконтакте']
 tg_app_names = ['tg', 'telgram', 'телграм', 'телега', 'тг']
@@ -71,7 +65,7 @@ def add(user_id):
                     cur = con.cursor()
                     cur.execute(
                         """INSERT INTO tasks_user (username, tasks, date, app) VALUES (?, ?, ?, ?)""",
-                        (user_id, task, date, app_name))
+                        (user, task, date, app_name))
                     con.commit()
                     con.close()
                 else:
@@ -116,8 +110,9 @@ def day(user_id):
                     f"""SELECT tasks FROM tasks_user WHERE date='{mes}' AND app='{app}'""").fetchall()
                     for task in tasks:
                         send_msg(user_id, task)
-        con.commit()
-        con.close()
+                con.commit()
+                con.close()
+                break
 
 # функция удаления
 def delete(user_id):
@@ -126,12 +121,15 @@ def delete(user_id):
              "Введите дату и название события в формате 'Название события; год.месяц.день', чтобы удалить событие")
     con = sqlite3.connect("db/things.db")
     cur = con.cursor()
-    for app in vk_app_names:
-        for event in VkLongPoll(vk_session).listen():
-            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+
+    for event in VkLongPoll(vk_session).listen():
+        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+            if event.from_user:
                 need_task_and_date = str(event.text.lower()).split('; ')
+                print(need_task_and_date)
                 task, date = need_task_and_date[0], need_task_and_date[1]
-                cur.execute(
+                for app in vk_app_names:
+                    cur.execute(
                         f"""DELETE from tasks_user where date='{date}' AND tasks='{task}' AND app='{app}'""").fetchall()
                 send_msg(user_id, 'Событие удалено')
                 send_msg(user_id, 'Теперь ваши планы на указанный день:')
@@ -145,7 +143,8 @@ def delete(user_id):
                                 send_msg(user_id, task)
                 con.commit()
                 con.close()
-                date = ''
+                break
+
 
 if __name__ == '__main__':
     main()
