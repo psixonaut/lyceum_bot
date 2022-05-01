@@ -36,7 +36,6 @@ def main():
                 today(user_id)
             elif '/day' in msg:
                 day(user_id)
-
 # перечень функций
 def commands(user_id):
     send_msg(user_id, 'Список команд:\n'
@@ -145,6 +144,3 @@ def delete(user_id):
                 con.close()
                 break
 
-
-if __name__ == '__main__':
-    main()
