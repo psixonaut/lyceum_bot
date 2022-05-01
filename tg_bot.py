@@ -148,7 +148,3 @@ def main():
     updater.idle()
 
 
-#кодовое слово для конфига - token_key, ссылка на перевод - https://planetcalc.ru/2468/?text=BOT_TOKEN_TG%20%3D%20'5389484482%3AAAElsVC7-gy4-Xi8jRevVXwgTT-VF0lMIYk'%0ABOT_TOKEN_DS%20%3D%20'OTYzOTIxNzQ4NTkwNDYwOTU4.YldIFQ.QP9iEuoRW9aCsR03LTJjIWnuirA'%0ABOT_TOKEN_VK%20%3D%20'6983e672abcad7301d719931efbf0e2144efe94c0474b5ca56e95656677234b57faad945d10a61146cdc3'%0Agroup_id%20%3D%20'212033635'&key=token_key&transform=c&method=ROT1&aselector=english
-
-if __name__ == '__main__':
-    main()
